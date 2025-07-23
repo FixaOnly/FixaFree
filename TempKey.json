@@ -5,6 +5,13 @@
     "password": "Xiterz",
     "expiresAt": "2025-12-31",
     "allowOffline": true
+  }, 
+  {
+    "id": "c88cc49a1eecad39",
+    "username": "Fixa",
+    "password": "Xiterz",
+    "expiresAt": "2025-12-31",
+    "allowOffline": true
   },
   {
     "id": "android_device_id_2",
