@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black text-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title> FIXA XITERZ ADMIN KEY</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .neon-red {
+      box-shadow: 0 0 10px #04388c, 0 0 20px #04388c, 0 0 40px #04388c;
+    }
+    .neon-text {
+      text-shadow: 0 0 5px #04388c, 0 0 10px #04388c, 0 0 20px #04388c;
+    }
+    .card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 15px #04388c;
+    }
+  </style>
+</head>
+<body class="p-6 font-sans">
+
+  <!-- Judul -->
+  <h1 class="text-4xl font-bold text-white-500 neon-text mb-8 text-center animate-pulse">
+    FIXA XITERZ ADMIN KEY
+  </h1>
+
+  <!-- Grid: Buat Key & Leaderboard -->
+  <div class="grid md:grid-cols-2 gap-6 mb-8">
+
+    <!-- Form Tambah Key -->
+    <div class="bg-gray-900 p-5 rounded-xl neon-white card">
+      <h2 class="text-xl mb-4 font-semibold text-white neon-text">➕ Tambah Device Key</h2>
+      <input id="device_id" placeholder="Device ID" class="w-full p-2 my-2 bg-gray-800 text-white rounded"/>
+      <div class="flex gap-2 items-center">
+        <input id="key" placeholder="Key (otomatis)" class="w-full p-2 bg-gray-800 text-white rounded" readonly/>
+        <button onclick="generateKey()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded neon-red">🔁</button>
+      </div>
+      <input id="expired" type="number" placeholder="Expired (hari)" class="w-full p-2 my-2 bg-gray-800 text-white rounded"/>
+      <select id="allowoffline" class="w-full p-2 my-2 bg-gray-800 text-white rounded">
+        <option value="true">Izinkan Offline: Iya</option>
+        <option value="false">Izinkan Offline: Tidak</option>
+      </select>
+      <button onclick="addKey()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded w-full font-bold neon-red">Tambah Key</button>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="bg-gray-900 p-5 rounded-xl neon-red card">
+      <h2 class="text-xl mb-4 font-semibold text-red-500 neon-text">🏆 Leaderboard Key</h2>
+      <ul id="leaderboard" class="list-disc list-inside text-white space-y-2"></ul>
+    </div>
+
+  </div>
+
+  <!-- Search & Table -->
+  <div class="bg-gray-900 p-5 rounded-xl neon-red">
+    <!-- Search -->
+    <div class="mb-4 flex justify-center">
+      <input id="search" type="text" placeholder="🔍 Cari device, key, atau pengguna..." class="w-full md:w-1/2 p-2 bg-gray-800 text-white rounded-lg outline-none focus:ring-2 focus:ring-red-500"/>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-700">
+      <table class="w-full text-sm">
+        <thead class="bg-red-600 text-white">
+          <tr>
+            <th class="p-2 text-left">Device ID</th>
+            <th class="p-2 text-left">Key</th>
+            <th class="p-2 text-left">Expired</th>
+            <th class="p-2 text-left">Offline</th>
+            <th class="p-2 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body" class="text-white bg-gray-800"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const repoOwner = "FixaOnly"; 
+    const repoName = "key"; 
+    const filePath = "userdata.json";
+    const branch = "main";
+    const token = "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"; // Ganti token
+
+    let data = [];
+    let fileSha = "";
+
+    async function fetchData() {
+      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`, {
+        headers: { Authorization: `token ${token}` },
+      });
+      const json = await res.json();
+      const content = atob(json.content);
+      data = JSON.parse(content);
+      renderTable(data);
+      renderLeaderboard();
+      fileSha = json.sha;
+    }
+
+    function renderTable(filteredData) {
+      const tbody = document.getElementById("table-body");
+      tbody.innerHTML = "";
+      filteredData.forEach((item, index) => {
+        tbody.innerHTML += `
+          <tr class="border-b border-gray-700 hover:bg-gray-700">
+            <td class="p-2"><input value="${item.device_id}" onchange="editField(${index}, 'device_id', this.value)" class="bg-transparent text-white w-full"/></td>
+            <td class="p-2"><input value="${item.key}" onchange="editField(${index}, 'key', this.value)" class="bg-transparent text-white w-full"/></td>
+            <td class="p-2"><input value="${item.expirydate}" onchange="editField(${index}, 'expirydate', this.value)" class="bg-transparent text-white w-full"/></td>
+            <td class="p-2">
+              <span class="px-2 py-1 rounded text-xs ${item.Allowoffline ? 'bg-green-600' : 'bg-red-600'}">${item.Allowoffline}</span>
+            </td>
+            <td class="p-2 flex gap-2">
+              <button onclick="deleteKey(${index})" class="bg-red-700 hover:bg-red-800 px-2 py-1 rounded text-xs">Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = {};
+      data.forEach(item => {
+        leaderboard[item.key] = (leaderboard[item.key] || 0) + 1;
+      });
+      const sorted = Object.entries(leaderboard).sort((a,b)=>b[1]-a[1]);
+      const ul = document.getElementById("leaderboard");
+      ul.innerHTML = "";
+      sorted.forEach(([key, count]) => {
+        ul.innerHTML += `<li class="neon-text"><strong>${key}</strong>: ${count} device</li>`;
+      });
+    }
+
+    async function saveData() {
+      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "Update JSON data",
+          content: btoa(JSON.stringify(data, null, 2)),
+          sha: fileSha,
+          branch: branch
+        })
+      });
+      return await res.json();
+    }
+
+    async function addKey() {
+      const device_id = document.getElementById("device_id").value.trim();
+      const key = document.getElementById("key").value.trim();
+      const days = parseInt(document.getElementById("expired").value.trim());
+      const allowoffline = document.getElementById("allowoffline").value === "true";
+
+      if (!device_id || !key || isNaN(days)) {
+        return alert("Isi semua kolom dengan benar");
+      }
+
+      const now = new Date();
+      now.setDate(now.getDate() + days);
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const expirydate = `${dd}-${mm}-${yyyy}`;
+
+      data.push({ device_id, key, expirydate, Allowoffline: allowoffline });
+      await saveData();
+      fetchData();
+      generateKey();
+    }
+
+    function editField(index, field, value) {
+      data[index][field] = value;
+      saveData();
+    }
+
+    async function deleteKey(index) {
+      if (confirm("Yakin hapus key ini?")) {
+        data.splice(index, 1);
+        await saveData();
+        fetchData();
+      }
+    }
+
+    function generateKey() {
+      const random = Math.floor(10000 + Math.random() * 90000);
+      document.getElementById("key").value = `FIXA-CHIKO-${random}`;
+    }
+
+    document.getElementById("search").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+      const filtered = data.filter(item =>
+        item.device_id.toLowerCase().includes(q) ||
+        item.key.toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    });
+
+    window.onload = () => {
+      fetchData();
+      generateKey();
+    };
+  </script>
+</body>
+</html>
